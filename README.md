@@ -3,6 +3,12 @@
 ## Abstract
 Fetch a qualys WAS notification email, parses it and send a notification to Slack. Send a notification if vulnerabilities above a certain threshold are discovered. Also notify if the scan is not successful.
 
+The email should be send to this script by piping (stdin). This can easily be done with your MTP server (exim, postfix...) by adding a special address to your mailserver. Edit the file `/etc/aliases` and add this line :
+```
+qualys: "|/path/to/qualyswas-notification-to-slack.py"
+```
+Any mail send to `qualys@yourmailserver` will be send to the script.
+
 ## Requirements
 - Python 3
 - Slackweb library. `sudo pip install slackweb`
