@@ -11,7 +11,7 @@ import json
 # Parse arguments
 parser = argparse.ArgumentParser(description='Forwards Qualys WAS notification emails to Slack channel with severity control. Take the email in stdin')
 parser.add_argument('-U', '--slack-url', required=True, help='URL of Slack Incoming Webhook')
-parser.add_argument('-S', '--severity', help='Severity on which the red alert should be sent', choices=['urgent','critical','serious','medium','minimal'], default='critical')
+parser.add_argument('-S', '--severity', help='Severity on which the red alert should be sent in red', choices=['urgent','critical','serious','medium','minimal'], default='critical')
 args = parser.parse_args()
 
 slack = slackweb.Slack(url=args.slack_url)
