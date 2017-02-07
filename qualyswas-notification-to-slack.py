@@ -6,11 +6,12 @@ import re
 import sys
 import slackweb
 import argparse
+import json
 
 # Parse arguments
 parser = argparse.ArgumentParser(description='Forwards Qualys WAS notification emails to Slack channel with severity control. Take the email in stdin')
 parser.add_argument('-U', '--slack-url', required=True, help='URL of Slack Incoming Webhook')
-parser.add_argument('-S', '--severity', help='Severity on which the alert should be sent', choices=['urgent','critical','serious','medium','minimal'], default='critical')
+parser.add_argument('-S', '--severity', help='Severity on which the red alert should be sent', choices=['urgent','critical','serious','medium','minimal'], default='critical')
 args = parser.parse_args()
 
 slack = slackweb.Slack(url=args.slack_url)
@@ -49,22 +50,30 @@ serious = obj.group(4)
 medium = obj.group(5)
 minimal = obj.group(6)
 
+
+color = '#008000' #Green
+
 # Notify
-if  (scanstatus != 'Finished' or (scanstatus == 'Finished' and scanstatusdetail != 'OK')) or \
+if  (scanstatus != 'Finished' or (scanstatus == 'Finished' and (scanstatusdetail != 'OK' and scanstatusdetail != 'Ok'))) or \
     (authenticationstatus != 'Successful') or \
     (int(urgent) > 0 and severity <= 5) or \
     (int(critical) > 0 and severity <= 4) or \
     (int(serious) > 0 and severity <= 3) or \
     (int(medium) > 0 and severity <= 2) or \
     (int(minimal) > 0 and severity <= 1):
-    slack.notify(text='Scan Status : {} - {}\nAuthentication Status: {}\n\nLinks Crawled: {}\n\nSummary of Vulnerabilities :\n\nSeverity 5 "Urgent" : {}\nSeverity 4 "Critical" : {}\nSeverity 3 "Serious" : {}\nSeverity 2 "Medium" : {}\nSeverity 1 "Minimal" : {}'.format(
-        scanstatus,
-        scanstatusdetail,
-        authenticationstatus,
-        linkscrawled,
-        urgent,
-        critical,
-        serious,
-        medium,
-        minimal
-        ))
+    color = '#FF0000'
+
+text = 'Scan Status : {} - {}\nAuthentication Status: {}\n\nLinks Crawled: {}'.format(
+    scanstatus,
+    scanstatusdetail,
+    authenticationstatus,
+    linkscrawled
+    )
+attachments = [{"color":color,"title":"Qualys Vulnerabilities Scan Results","text":text,"fields":[
+                        {"value":"Severity 5 (Urgent) : {}".format(urgent)},
+                        {"value":"Severity 4 (Critical) : {}".format(critical)},
+                        {"value":"Severity 3 (Serious) : {}".format(serious)},
+                        {"value":"Severity 2 (Medium) : {}".format(medium)},
+                        {"value":"Severity 1 (Minimal) : {}".format(minimal)},
+                    ]}]
+slack.notify(attachments=attachments)
