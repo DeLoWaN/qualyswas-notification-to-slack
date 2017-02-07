@@ -5,9 +5,19 @@ Fetch a qualys WAS notification email, parses it and send a notification to Slac
 
 The email should be send to this script by piping (stdin). This can easily be done with your MTP server (exim, postfix...) by adding a special address to your mailserver. Edit the file `/etc/aliases` and add this line :
 ```
-qualys: "|/path/to/qualyswas-notification-to-slack.py"
+qualys: "|/path/to/custom-bash.sh"
 ```
-Any mail send to `qualys@yourmailserver` will be send to the script.
+
+The file custom-bash.sh will contain :
+```
+#!/bin/bash
+export PYTHONPATH=/usr/local/lib/python3.4/site-packages
+cat /dev/stdin | /path/to/qualyswas-notification-to-slack.py -S urgent -U 'https://hooks.slack.com/services/XXXXXX/XXXXXXX/XXXXXXXXXXXXXXXXXXXXXX'
+```
+
+We need to do this since the MTA won't search for 3rd party python library.
+
+Any mail sent to `qualys@yourmailserver` will be send to the script.
 
 ## Requirements
 - Python 3
